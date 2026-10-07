@@ -53,12 +53,18 @@ function onTool(t: ToolItem) {
       uni.navigateTo({ url: '/pages/tools/qrcode' }); break;
     case 'level': uni.navigateTo({ url: '/pages/tools/level' }); break;
     case 'scan':
+      // #ifdef H5
+      // H5 无扫码能力，直接调 uni.scanCode 会走 fail 并提示「已取消」，误导用户
+      uni.showToast({ title: '扫一扫需在 App 或小程序中使用', icon: 'none' });
+      // #endif
+      // #ifndef H5
       uni.scanCode({
         success: (res) => {
           uni.showModal({ title: '扫码结果', content: res.result || '空', showCancel: false });
         },
         fail: () => uni.showToast({ title: '已取消扫码', icon: 'none' }),
       });
+      // #endif
       break;
     default:
       uni.showToast({ title: `${t.name} · 即将上线`, icon: 'none' });

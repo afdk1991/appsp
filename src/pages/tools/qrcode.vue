@@ -19,6 +19,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { onUnload } from '@dcloudio/uni-app';
 
 const text = ref('https://example.com');
 const qrUrl = ref('');
@@ -26,6 +27,14 @@ const loading = ref(false);
 const errTip = ref('');
 
 let loadTimer: ReturnType<typeof setTimeout> | null = null;
+
+// 页面销毁时撤销超时兜底，否则定时器仍会触发并把已加载成功的二维码清空
+onUnload(() => {
+  if (loadTimer) {
+    clearTimeout(loadTimer);
+    loadTimer = null;
+  }
+});
 
 function buildUrl(content: string) {
   return 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + encodeURIComponent(content);
@@ -62,7 +71,7 @@ function onError() {
   errTip.value = '生成失败，请检查网络后重试';
 }
 
-/** image 加载成功时 uni 不派发 load 事件到 image 组件外，用定时器已在 gen 中兜底；此处由 @load 关闭 */
+/** 图片加载成功：关闭加载态并撤销超时兜底 */
 function onLoad() {
   loading.value = false;
   if (loadTimer) clearTimeout(loadTimer);

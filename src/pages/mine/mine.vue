@@ -55,7 +55,7 @@
       </view>
     </view>
 
-    <view class="version">优选 APP v1.0.0 · Android</view>
+    <view class="version">{{ APP_INFO.name }} APP v{{ APP_INFO.version }} · Android</view>
   </view>
 </template>
 
@@ -63,6 +63,7 @@
 import { computed, ref } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import { userStore } from '../../store/user';
+import { APP_INFO } from '../../config';
 
 const user = ref(userStore.state.user);
 const counts = ref({ pending_pay: 0, paid: 0, shipped: 0, done: 0, refund: 0 });
@@ -102,18 +103,15 @@ function onLogin() {
 }
 
 function goOrders(status: string) {
+  const target = `/pages/order/list?status=${status}`;
   if (!userStore.state.user.isLoggedIn) {
-    uni.navigateTo({ url: '/pages/login/login' });
+    uni.navigateTo({ url: '/pages/login/login?redirect=' + encodeURIComponent(target) });
     return;
   }
-  uni.navigateTo({ url: `/pages/order/list?status=${status}` });
+  uni.navigateTo({ url: target });
 }
 
 function onMenu(m: { key: string; name: string }) {
-  if (['address', 'coupon', 'favorite'].includes(m.key) && !userStore.state.user.isLoggedIn) {
-    uni.navigateTo({ url: '/pages/login/login' });
-    return;
-  }
   const map: Record<string, string> = {
     address: '/pages/address/list',
     coupon: '/pages/coupon/coupon',
@@ -122,7 +120,13 @@ function onMenu(m: { key: string; name: string }) {
     setting: '/pages/setting/setting',
     about: '/pages/about/about',
   };
-  if (map[m.key]) uni.navigateTo({ url: map[m.key] });
+  const target = map[m.key];
+  if (!target) return;
+  if (['address', 'coupon', 'favorite'].includes(m.key) && !userStore.state.user.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/login?redirect=' + encodeURIComponent(target) });
+    return;
+  }
+  uni.navigateTo({ url: target });
 }
 </script>
 

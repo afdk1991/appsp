@@ -111,8 +111,11 @@ function buyNow() {
   });
   cartStore.setOnlyChecked(lineIdOf(p.id, spec));
 
+  // 购物车勾选状态已持久化，登录后可直接回下单页，不必让用户再点一次「立即购买」
   if (!userStore.state.user.isLoggedIn) {
-    uni.navigateTo({ url: '/pages/login/login' });
+    uni.navigateTo({
+      url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/order/confirm'),
+    });
     return;
   }
   uni.navigateTo({ url: '/pages/order/confirm' });

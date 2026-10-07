@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { onUnload } from '@dcloudio/uni-app';
 
 const x = ref(0);
@@ -56,17 +56,21 @@ const circleStyle = computed(() => ({
   borderColor: balanced.value ? '#4CAF50' : '#FF5A1F',
 }));
 
-uni.onAccelerometerChange((res) => {
-  x.value = res.x;
-  y.value = res.y;
-  if (typeof res.z === 'number') z.value = res.z;
-});
+// 传感器必须在页面挂载后再启动：setup 阶段页面实例尚未就绪，
+// 部分平台（尤其 App 端）此时调用 startAccelerometer 会直接走 fail，页面静止且无读数
+onMounted(() => {
+  uni.onAccelerometerChange((res) => {
+    x.value = res.x;
+    y.value = res.y;
+    if (typeof res.z === 'number') z.value = res.z;
+  });
 
-uni.startAccelerometer({
-  interval: 'normal',
-  fail: () => {
-    unsupported.value = true;
-  },
+  uni.startAccelerometer({
+    interval: 'normal',
+    fail: () => {
+      unsupported.value = true;
+    },
+  });
 });
 
 onUnload(() => {

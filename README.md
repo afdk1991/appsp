@@ -10,7 +10,7 @@
 - 商品详情：规格选择、加入购物车（真实入库）、立即购买、收藏、购物车角标
 - 购物车：数量增减、单选/全选、删除、合计、结算
 - 确认订单：地址选择、优惠券抵扣、实付款计算、下单 + 模拟支付
-- 订单列表：按状态筛选（待付款/待发货/待收货/已完成/退款），支持从「我的」页各状态入口直达对应分组；去支付、确认收货、删除（含持久化）
+- 订单列表：按状态筛选（待付款/待发货/待收货/已完成/退款），支持从「我的」页各状态入口直达对应分组；去支付、确认收货、申请退款、删除（均含持久化）
 - 订单详情：状态横幅、地址、商品明细、取消订单、再次支付
 
 ### 发现社区
@@ -22,6 +22,7 @@
 
 ### 我的
 - 手机号一键登录 / 验证码登录（本地模拟，支持微信/Apple 演示入口）
+- 未登录时点「立即购买 / 结算 / 我的订单 / 收货地址」等，登录页会带上 `?redirect=`，登录成功后直达原目标页，无需再点一次
 - 用户卡片：头像、昵称、手机号
 - 订单状态入口：角标显示各状态订单数
 - 收货地址：列表 / 新增 / 编辑 / 删除 / 设默认
@@ -37,7 +38,7 @@
 | 待办清单 | 增删改查、完成状态、筛选、本地持久化 |
 | 计算器 | 完整四则运算、百分号、退格 |
 | 随手记 | 笔记列表、保存、删除 |
-| 扫一扫 | 调起原生 `uni.scanCode` 扫码 |
+| 扫一扫 | 调起原生 `uni.scanCode` 扫码（H5 无此能力，会提示需在 App / 小程序中使用）|
 | 生成二维码 | 输入文本/链接生成二维码图，含加载态与失败重试 |
 | 汇率换算 | 8 种货币实时换算（固定参考汇率） |
 | 水平仪 | 加速度计实时气泡（rpx→px 换算，内联样式可用）、倾角读数、不支持时明确提示 |
@@ -106,7 +107,8 @@ npm run type-check   # TS 类型检查
 ### 方式二：Gradle 本地打包（android-shell）
 
 `android-shell/` 是一个最小原生 WebView 壳（包名 `com.appsp.youxuan`），
-`MainActivity.START_URL` 指向已部署的 H5 地址，改这个常量即可换站点。
+启动地址配置在 `app/src/main/res/values/strings.xml` 的 `start_url`，改这一处即可换站点，无需改 Java 代码。
+启动图标同时提供 `mipmap-mdpi ~ mipmap-xxxhdpi` 位图（API 21-25）与 `mipmap-anydpi-v26` 自适应图标（API 26+）。
 
 ```bash
 cd android-shell
@@ -115,9 +117,12 @@ gradle assembleDebug      # 输出 app/build/outputs/apk/debug/app-debug.apk
 ```
 
 > 注意：`android-shell/local.properties` 含本机 SDK 路径，已在 `.gitignore` 中排除，不要提交。
+> `.gitignore` 对 `gradle-wrapper.jar` 做了例外放行（全局 `*.jar` 规则会拦掉它），否则他人 clone 后无法构建。
 
 ## 数据说明
 
-- 商品/帖子数据：当前走 `src/config/index.ts` 配置的腾讯云 CloudBase PG REST（匿名只读）。
+- 商品/帖子数据：由 `src/config/index.ts` 的 `USE_MOCK` 决定。默认 `true` 走 `src/mock/data.ts` 本地数据；
+  在 `.env` 设 `VITE_USE_MOCK=false` 即切到腾讯云 CloudBase PG REST（匿名只读），
+  可用 `VITE_CLOUDBASE_PUBLISHABLE_KEY` 覆盖内置 Publishable Key，无需改代码。见 `.env.example`。
 - 用户、购物车、订单、地址、收藏、点赞、评论、待办、笔记：全部存储在本机 `uni.storage`，卸载 App 才清除，无需后端账号。
 - 登录为本地演示登录，接入真实后端时替换 `src/store/user.ts` 的 `login()` 为真实接口即可，页面层无需改动。

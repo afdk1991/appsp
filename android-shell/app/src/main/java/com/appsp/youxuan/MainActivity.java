@@ -12,13 +12,16 @@ import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
     private WebView webView;
-    private static final String START_URL = "https://appsp-cs-1-d5g815slocb5a611a.webapps.tcloudbase.com/";
+    /** 启动地址外置在 res/values/strings.xml 的 start_url，换部署域名不必改代码 */
+    private String startUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Window w = getWindow();
         w.setStatusBarColor(Color.parseColor("#FF5A1F"));
+
+        startUrl = getString(R.string.start_url);
 
         webView = new WebView(this);
         WebSettings s = webView.getSettings();
@@ -73,7 +76,7 @@ public class MainActivity extends Activity {
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState);
         } else {
-            webView.loadUrl(START_URL);
+            webView.loadUrl(startUrl);
         }
     }
 

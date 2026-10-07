@@ -1,6 +1,8 @@
 # ---- 依赖 & 构建产物 ----
 node_modules/
 dist/
+# 构建验证时用的独立输出目录（UNI_OUTPUT_DIR=dist_verifyN / dist_vN）
+dist_*/
 unpackage/
 .hbuilderx/
 .temp/
@@ -22,6 +24,9 @@ android-shell/local.properties
 *.aab
 *.jar
 *.dex
+
+# gradle wrapper jar 必须提交，否则他人 clone 后无法构建（上面的 *.jar 会把它拦掉）
+!android-shell/gradle/wrapper/gradle-wrapper.jar
 
 # ---- 打包/上传临时归档 ----
 *.zip

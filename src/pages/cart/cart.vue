@@ -76,7 +76,9 @@ function goShop() {
 function checkout() {
   if (!checkedCount.value) return;
   if (!userStore.state.user.isLoggedIn) {
-    uni.navigateTo({ url: '/pages/login/login' });
+    uni.navigateTo({
+      url: '/pages/login/login?redirect=' + encodeURIComponent('/pages/order/confirm'),
+    });
     return;
   }
   uni.navigateTo({ url: '/pages/order/confirm' });

@@ -33,6 +33,7 @@
           <view v-if="o.status === 'pending_pay'" class="btn" @tap="pay(o.id)">去支付</view>
           <view v-if="o.status === 'shipped'" class="btn" @tap="confirm(o.id)">确认收货</view>
           <view v-if="o.status === 'paid'" class="btn ghost" @tap="remind(o.id)">提醒发货</view>
+          <view v-if="o.status === 'paid' || o.status === 'shipped'" class="btn ghost" @tap="refund(o.id)">申请退款</view>
           <view class="btn ghost" @tap="del(o.id)">删除订单</view>
         </view>
       </view>
@@ -94,6 +95,18 @@ function confirm(id: string) {
 function remind(id: string) {
   uni.showToast({ title: '已提醒商家发货', icon: 'none' });
 }
+function refund(id: string) {
+  uni.showModal({
+    title: '申请退款',
+    content: '确定申请退款？款项将在 1-3 个工作日原路退回。',
+    success: (r) => {
+      if (r.confirm) {
+        userStore.updateOrderStatus(id, 'refund');
+        uni.showToast({ title: '退款申请已提交', icon: 'success' });
+      }
+    },
+  });
+}
 function del(id: string) {
   uni.showModal({
     title: '删除订单',
@@ -119,7 +132,12 @@ function del(id: string) {
 .card { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; }
 .head { display: flex; justify-content: space-between; margin-bottom: 16rpx; }
 .oid { font-size: 22rpx; color: #999; }
-.status { font-size: 24rpx; color: #FF5A1F; }
+.status { font-size: 24rpx; }
+.status.pending_pay { color: #FF5A1F; }
+.status.paid { color: #1E88E5; }
+.status.shipped { color: #43A047; }
+.status.done { color: #9E9E9E; }
+.status.refund { color: #E53935; }
 .row { display: flex; align-items: center; gap: 16rpx; padding: 10rpx 0; }
 .thumb { width: 90rpx; height: 90rpx; border-radius: 10rpx; display: flex; align-items: center; justify-content: center; }
 .thumb-text { font-size: 28rpx; color: rgba(255,255,255,.85); font-weight: 600; }

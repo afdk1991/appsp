@@ -31,14 +31,22 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { onUnload } from '@dcloudio/uni-app';
+import { onLoad, onUnload } from '@dcloudio/uni-app';
 import { userStore } from '../../store/user';
 
 const phone = ref('');
+/** 登录后要直达的页面（非 tabBar）。例如「立即购买」被打断时传 /pages/order/confirm */
+const redirect = ref('');
 const code = ref('');
 const counting = ref(0);
 const agreed = ref(true);
 let timer: ReturnType<typeof setInterval> | null = null;
+/** 登录成功后的延时跳转：页面若在 600ms 内被销毁，必须取消，否则会在已卸载页面触发导航 */
+let navTimer: ReturnType<typeof setTimeout> | null = null;
+
+onLoad((q) => {
+  redirect.value = (q?.redirect as string) || '';
+});
 
 function sendCode() {
   if (counting.value > 0) return;
@@ -51,7 +59,10 @@ function sendCode() {
   code.value = '123456';
   timer = setInterval(() => {
     counting.value -= 1;
-    if (counting.value <= 0 && timer) clearInterval(timer);
+    if (counting.value <= 0 && timer) {
+      clearInterval(timer);
+      timer = null;
+    }
   }, 1000);
 }
 
@@ -70,17 +81,22 @@ function doLogin() {
   }
   userStore.login(phone.value);
   uni.showToast({ title: '登录成功', icon: 'success' });
-  setTimeout(() => goBack(), 600);
+  navTimer = setTimeout(() => goBack(), 600);
 }
 
 function quickLogin() {
   userStore.login('13800138000');
   uni.showToast({ title: '登录成功', icon: 'success' });
-  setTimeout(() => goBack(), 600);
+  navTimer = setTimeout(() => goBack(), 600);
 }
 
-/** 登录成功后回退；若无上一页（直接进入登录页）则回首页 */
+/** 登录成功后的去向：有 redirect 直达目标；否则回上一页；无上一页则回首页 */
 function goBack() {
+  if (redirect.value) {
+    // 直接切到目标页，避免用户回到原页后还要再点一次「立即购买」
+    uni.redirectTo({ url: redirect.value });
+    return;
+  }
   if (getCurrentPages().length > 1) {
     uni.navigateBack();
   } else {
@@ -92,6 +108,10 @@ onUnload(() => {
   if (timer) {
     clearInterval(timer);
     timer = null;
+  }
+  if (navTimer) {
+    clearTimeout(navTimer);
+    navTimer = null;
   }
 });
 </script>

@@ -40,8 +40,11 @@ onShow(() => {
 function calcSize() {
   try {
     // #ifdef H5
+    // 口径必须与 doClear() 一致：只统计「会被清掉」的非 appsp_ 键。
+    // 否则显示体积包含账号/订单等业务数据，清理后数字纹丝不动，用户会以为没清干净。
     let total = 0;
     Object.keys(localStorage).forEach((k) => {
+      if (k.startsWith('appsp_')) return;
       total += (localStorage.getItem(k) || '').length;
     });
     cacheSize.value = total > 1024 ? (total / 1024).toFixed(1) + 'KB' : total + 'B';

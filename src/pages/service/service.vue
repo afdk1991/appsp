@@ -53,7 +53,8 @@ function send() {
 
 <style scoped>
 .page { display: flex; flex-direction: column; height: 100vh; }
-.chat { flex: 1; padding: 24rpx; height: 0; }\n.anchor { height: 1rpx; }
+.chat { flex: 1; padding: 24rpx; height: 0; }
+.anchor { height: 1rpx; }
 .msg { display: flex; margin-bottom: 20rpx; }
 .msg.me { justify-content: flex-end; }
 .bubble { max-width: 70%; padding: 20rpx 24rpx; border-radius: 16rpx; font-size: 26rpx; line-height: 1.5; }

@@ -74,6 +74,13 @@ function persistAddr() { save(ADDR_KEY, state.addresses); }
 function persistOrder() { save(ORDER_KEY, state.orders); }
 function persistCoupon() { save(COUPON_KEY, state.coupons); }
 
+/** 订单号：'OD' + Date.now() 在同一毫秒内连下两单会撞号，导致 v-for key 重复、支付/删除联动错乱 */
+let orderSeq = 0;
+function nextOrderId(): string {
+  orderSeq = (orderSeq + 1) % 100000;
+  return `OD${Date.now()}${orderSeq.toString(36)}`;
+}
+
 /** 保证地址列表中至少有一个默认地址，避免出现「无默认地址」的悬空状态 */
 function ensureDefaultAddress() {
   if (state.addresses.length === 0) return;
@@ -146,10 +153,13 @@ export const userStore = {
   // ---------- 订单 ----------
   createOrder(items: OrderItem[], totalPrice: number, address: Address | null): Order {
     const order: Order = {
-      id: 'OD' + Date.now(),
-      items,
+      id: nextOrderId(),
+      // 商品行深拷贝：购物车行后续被删除/改数量时，历史订单不应跟着变
+      items: items.map((i) => ({ ...i })),
       totalPrice,
-      address,
+      // 地址深拷贝：若直接存 state.addresses 里的对象引用，用户日后编辑或删除该地址时，
+      // 历史订单里的收货信息会连带变化（甚至指向已删除的地址）
+      address: address ? { ...address } : null,
       status: 'pending_pay',
       createdAt: Date.now(),
     };

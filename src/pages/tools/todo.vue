@@ -37,6 +37,10 @@ const filtered = computed(() => {
 });
 
 function add() {
+  if (!text.value.trim()) {
+    uni.showToast({ title: '请输入待办内容', icon: 'none' });
+    return;
+  }
   todoStore.add(text.value);
   text.value = '';
 }

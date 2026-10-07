@@ -3,7 +3,7 @@
     <view class="logo-block">
       <view class="logo">优</view>
       <text class="app-name">优选</text>
-      <text class="version">Version 1.0.0</text>
+      <text class="version">Version {{ APP_INFO.version }}</text>
     </view>
     <view class="card">
       <view class="row"><text class="k">应用名称</text><text class="v">优选 · 综合商城</text></view>
@@ -17,6 +17,7 @@
 </template>
 
 <script setup lang="ts">
+import { APP_INFO } from '../../config';
 </script>
 
 <style scoped>
