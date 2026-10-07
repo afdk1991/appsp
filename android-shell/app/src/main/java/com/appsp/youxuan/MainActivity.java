@@ -1,12 +1,14 @@
 package com.appsp.youxuan;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.view.Window;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.view.Window;
 
 public class MainActivity extends Activity {
     private WebView webView;
@@ -30,7 +32,7 @@ public class MainActivity extends Activity {
         s.setAllowFileAccessFromFileURLs(true);
         s.setAllowUniversalAccessFromFileURLs(true);
         s.setMediaPlaybackRequiresUserGesture(false);
-        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY);
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -48,20 +50,64 @@ public class MainActivity extends Activity {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (url == null) return false;
+                String lower = url.toLowerCase();
+                // 非 http/https 协议（tel / mailto / 各 App scheme）交给系统处理，
+                // 否则 WebView 会把它当网页加载导致白屏
+                if (!lower.startsWith("http://") && !lower.startsWith("https://")) {
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        view.getContext().startActivity(intent);
+                        return true;
+                    } catch (Exception e) {
+                        return true;
+                    }
+                }
                 view.loadUrl(url);
                 return true;
             }
         });
 
-        webView.clearCache(true);
-        webView.clearHistory();
         setContentView(webView);
-        webView.loadUrl(START_URL);
+        // 只在首次创建时加载，避免每次 onCreate 都清缓存并重新拉取首页
+        if (savedInstanceState != null) {
+            webView.restoreState(savedInstanceState);
+        } else {
+            webView.loadUrl(START_URL);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (webView != null) webView.saveState(outState);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (webView != null) webView.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (webView != null) webView.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (webView != null) {
+            webView.setWebViewClient(null);
+            webView.destroy();
+            webView = null;
+        }
+        super.onDestroy();
     }
 
     @Override
     public void onBackPressed() {
-        if (webView.canGoBack()) {
+        if (webView != null && webView.canGoBack()) {
             webView.goBack();
         } else {
             super.onBackPressed();

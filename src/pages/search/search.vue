@@ -51,6 +51,11 @@
           </view>
         </view>
       </view>
+      <view v-else-if="failed" class="empty">
+        <text class="empty-icon">⚠️</text>
+        <text class="empty-text">搜索失败</text>
+        <view class="retry" @tap="doSearch">重试</view>
+      </view>
       <view v-else class="empty">
         <text class="empty-icon">🔍</text>
         <text class="empty-text">没有找到「{{ keyword }}」相关商品</text>
@@ -60,6 +65,7 @@
 </template>
 
 <script setup lang="ts">
+import { onLoad } from '@dcloudio/uni-app';
 import { ref } from 'vue';
 import { fetchProducts } from '../../api';
 import type { Product } from '../../api/types';
@@ -70,24 +76,50 @@ const keyword = ref('');
 const searched = ref(false);
 const loading = ref(false);
 const results = ref<Product[]>([]);
-const history = load<string[]>(HISTORY_KEY, []);
+/** 必须是 ref：普通数组改动不会触发视图更新，历史记录会「存了但看不见」 */
+const history = ref<string[]>(load<string[]>(HISTORY_KEY, [] as string[]));
 const hot = ['保温杯', '耳机', '键盘', '充电宝', '四件套', '手环'];
+const failed = ref(false);
+
+/** 支持 ?keyword=xxx 直接进入搜索结果（首页金刚区入口依赖此能力） */
+onLoad((query) => {
+  const kw = (query?.keyword as string | undefined) || '';
+  if (kw) {
+    keyword.value = kw;
+    doSearch();
+  }
+});
+
+function pushHistory(k: string) {
+  const list = history.value.filter((x) => x !== k);
+  list.unshift(k);
+  if (list.length > 10) list.length = 10;
+  history.value = list;
+  save(HISTORY_KEY, list);
+}
 
 function doSearch() {
   const k = keyword.value.trim();
   if (!k) return;
-  if (!history.includes(k)) {
-    history.unshift(k);
-    if (history.length > 10) history.pop();
-    save(HISTORY_KEY, history);
-  }
+  pushHistory(k);
   searched.value = true;
   loading.value = true;
-  fetchProducts().then((res) => {
-    results.value = res.data.filter((p) => p.title.includes(k));
-  }).finally(() => {
-    loading.value = false;
-  });
+  failed.value = false;
+  fetchProducts()
+    .then((res) => {
+      const kw = k.toLowerCase();
+      results.value = (res.data || []).filter(
+        (p) => p.title.toLowerCase().includes(kw) || (p.tag || '').toLowerCase().includes(kw),
+      );
+    })
+    .catch(() => {
+      results.value = [];
+      failed.value = true;
+      uni.showToast({ title: '搜索失败，请重试', icon: 'none' });
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 }
 
 function quick(h: string) {
@@ -100,14 +132,15 @@ function clearKw() {
   results.value = [];
 }
 function clearHistory() {
-  history.length = 0;
-  save(HISTORY_KEY, history);
+  history.value = [];
+  save(HISTORY_KEY, history.value);
 }
 function goDetail(p: Product) {
   uni.navigateTo({ url: `/pages/product/detail?id=${p.id}` });
 }
 function goBack() {
-  uni.navigateBack();
+  if (getCurrentPages().length > 1) uni.navigateBack();
+  else uni.switchTab({ url: '/pages/index/index' });
 }
 </script>
 
@@ -139,4 +172,5 @@ function goBack() {
 .price { color: #FF5A1F; font-size: 36rpx; font-weight: 700; }
 .origin { color: #bbb; font-size: 22rpx; text-decoration: line-through; }
 .sales { color: #999; font-size: 22rpx; margin-top: 6rpx; display: block; }
+.retry { display: inline-block; margin-top: 24rpx; padding: 14rpx 40rpx; background: #FF5A1F; color: #fff; border-radius: 32rpx; font-size: 26rpx; }
 </style>

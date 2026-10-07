@@ -38,7 +38,13 @@ const list = computed(() => all.value.filter((p) => favIds.value.includes(p.id))
 
 onShow(() => {
   loading.value = true;
-  fetchProducts().then((res) => { all.value = res.data; }).finally(() => { loading.value = false; });
+  fetchProducts()
+    .then((res) => { all.value = res.data || []; })
+    .catch(() => {
+      all.value = [];
+      uni.showToast({ title: '加载失败，请下拉重试', icon: 'none' });
+    })
+    .finally(() => { loading.value = false; });
 });
 
 function unfav(p: Product) {

@@ -93,8 +93,13 @@ function cancel() {
     content: '确定取消该订单？',
     success: (r) => {
       if (r.confirm) {
-        userStore.state.orders = userStore.state.orders.filter((o) => o.id !== order.value!.id);
-        uni.navigateBack();
+        userStore.removeOrder(order.value!.id);
+        // 若当前页是下单后重定向进来的（无上一页），回退会失败，改为跳订单列表
+        if (getCurrentPages().length > 1) {
+          uni.navigateBack();
+        } else {
+          uni.redirectTo({ url: '/pages/order/list' });
+        }
       }
     },
   });

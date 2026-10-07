@@ -1,10 +1,11 @@
 <template>
   <view class="page">
-    <view class="chat">
-      <view v-for="(m, i) in messages" :key="i" class="msg" :class="m.from">
+    <scroll-view class="chat" scroll-y :scroll-into-view="anchor" scroll-with-animation>
+      <view v-for="(m, i) in messages" :key="i" class="msg" :class="m.from" :id="`m${i}`">
         <view class="bubble">{{ m.text }}</view>
       </view>
-    </view>
+      <view id="bottom" class="anchor"></view>
+    </scroll-view>
     <view class="input-bar">
       <input v-model="text" class="input" placeholder="请输入您的问题…" confirm-type="send" @confirm="send" />
       <view class="send" @tap="send">发送</view>
@@ -13,9 +14,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 
 interface Msg { from: 'me' | 'bot'; text: string; }
+const anchor = ref('');
 const messages = ref<Msg[]>([
   { from: 'bot', text: '您好，这里是优选智能客服，请问有什么可以帮您？' },
   { from: 'bot', text: '您可以咨询：订单查询 / 退换货 / 发票 / 账户问题' },
@@ -30,21 +32,28 @@ const replies: [RegExp, string][] = [
   [/你好|hi|hello/, '您好，请问有什么可以帮您？'],
 ];
 
+/** 滚到最新一条 */
+function scrollBottom() {
+  nextTick(() => { anchor.value = 'bottom'; });
+}
+
 function send() {
   const t = text.value.trim();
   if (!t) return;
   messages.value.push({ from: 'me', text: t });
   text.value = '';
+  scrollBottom();
   setTimeout(() => {
     const hit = replies.find(([re]) => re.test(t));
     messages.value.push({ from: 'bot', text: hit ? hit[1] : '已收到您的问题，客服会尽快回复。' });
+    scrollBottom();
   }, 500);
 }
 </script>
 
 <style scoped>
 .page { display: flex; flex-direction: column; height: 100vh; }
-.chat { flex: 1; padding: 24rpx; overflow-y: auto; }
+.chat { flex: 1; padding: 24rpx; height: 0; }\n.anchor { height: 1rpx; }
 .msg { display: flex; margin-bottom: 20rpx; }
 .msg.me { justify-content: flex-end; }
 .bubble { max-width: 70%; padding: 20rpx 24rpx; border-radius: 16rpx; font-size: 26rpx; line-height: 1.5; }

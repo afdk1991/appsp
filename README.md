@@ -10,15 +10,15 @@
 - 商品详情：规格选择、加入购物车（真实入库）、立即购买、收藏、购物车角标
 - 购物车：数量增减、单选/全选、删除、合计、结算
 - 确认订单：地址选择、优惠券抵扣、实付款计算、下单 + 模拟支付
-- 订单列表：按状态筛选（待付款/待发货/待收货/已完成）、去支付、确认收货、删除
+- 订单列表：按状态筛选（待付款/待发货/待收货/已完成/退款），支持从「我的」页各状态入口直达对应分组；去支付、确认收货、删除（含持久化）
 - 订单详情：状态横幅、地址、商品明细、取消订单、再次支付
 
 ### 发现社区
-- 顶部分类 Tab（推荐/关注/附近）
+- 顶部分类 Tab（推荐 / 热门按点赞排序 / 最新按发布时间排序）
 - 信息流卡片：头像、正文、封面
 - 点赞持久化到本地存储，再次进入状态保留
 - 评论：底部输入栏、评论列表展示
-- 分享（演示：复制链接）
+- 分享：调用 `uni.setClipboardData` 真实复制链接到剪贴板
 
 ### 我的
 - 手机号一键登录 / 验证码登录（本地模拟，支持微信/Apple 演示入口）
@@ -28,7 +28,7 @@
 - 优惠券：领取、满减门槛、使用
 - 我的收藏：商品收藏列表、取消收藏
 - 客服中心：智能问答对话框
-- 设置：清缓存、用户协议、隐私政策、退出登录
+- 设置：真实清除缓存（H5 清 localStorage 非业务键；App 清 savedFile，保留账号/订单/购物车等 `appsp_` 数据）、用户协议、隐私政策、退出登录
 - 关于我们
 
 ### 工具箱（全部真实可用，不依赖后端）
@@ -38,9 +38,9 @@
 | 计算器 | 完整四则运算、百分号、退格 |
 | 随手记 | 笔记列表、保存、删除 |
 | 扫一扫 | 调起原生 `uni.scanCode` 扫码 |
-| 生成二维码 | 输入文本/链接实时生成二维码图 |
+| 生成二维码 | 输入文本/链接生成二维码图，含加载态与失败重试 |
 | 汇率换算 | 8 种货币实时换算（固定参考汇率） |
-| 水平仪 | 加速度计实时气泡、水平判定 |
+| 水平仪 | 加速度计实时气泡（rpx→px 换算，内联样式可用）、倾角读数、不支持时明确提示 |
 
 ## 技术栈
 
@@ -81,6 +81,7 @@ APPsp/
 │   ├── main.ts
 │   ├── manifest.json
 │   └── pages.json      # 路由与 TabBar
+├── android-shell/  # 原生 Android WebView 壳（com.appsp.youxuan）
 └── package.json
 ```
 
@@ -93,12 +94,27 @@ npm run build:h5     # 生产包（输出到 dist/build/h5）
 npm run type-check   # TS 类型检查
 ```
 
-## 打 Android APK（HBuilderX 云打包，免费）
+## 打 Android APK
+
+### 方式一：HBuilderX 云打包（免费）
 
 1. 下载安装 [HBuilderX](https://www.dcloud.io/hbuilderx.html)（App 开发版）。
 2. 菜单 `文件 → 导入 → 从本地目录导入`，选择本项目根目录。
 3. 菜单 `发行 → 原生App-云打包`，选 Android，证书先用「公用测试证书」。
 4. 等待云端打包完成，下载 `.apk` 安装。
+
+### 方式二：Gradle 本地打包（android-shell）
+
+`android-shell/` 是一个最小原生 WebView 壳（包名 `com.appsp.youxuan`），
+`MainActivity.START_URL` 指向已部署的 H5 地址，改这个常量即可换站点。
+
+```bash
+cd android-shell
+# 需本地有 gradle 8.x，并在 local.properties 指定 sdk.dir
+gradle assembleDebug      # 输出 app/build/outputs/apk/debug/app-debug.apk
+```
+
+> 注意：`android-shell/local.properties` 含本机 SDK 路径，已在 `.gitignore` 中排除，不要提交。
 
 ## 数据说明
 

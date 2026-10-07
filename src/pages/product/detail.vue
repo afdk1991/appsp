@@ -50,7 +50,7 @@ import { computed, ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { fetchProducts } from '../../api';
 import type { Product } from '../../api/types';
-import { cartStore } from '../../store/cart';
+import { cartStore, lineIdOf } from '../../store/cart';
 import { communityStore } from '../../store/community';
 import { userStore } from '../../store/user';
 
@@ -72,8 +72,14 @@ async function load(id?: string) {
   loading.value = true;
   try {
     const res = await fetchProducts();
-    product.value = res.data.find((p) => p.id === id) || res.data[0] || null;
+    const list = res.data || [];
+    // 必须是精确匹配后再回退：原实现 res.data[0] 兜底会让「打开 A 商品却显示 B 商品」
+    product.value = list.find((p) => p.id === id) || null;
     currentId.value = product.value?.id || '';
+  } catch {
+    product.value = null;
+    currentId.value = '';
+    uni.showToast({ title: '商品加载失败', icon: 'none' });
   } finally {
     loading.value = false;
   }
@@ -93,30 +99,23 @@ function addToCart() {
 
 function buyNow() {
   if (!product.value) return;
+  const p = product.value;
+  const spec = specs[specIdx.value];
+  // 保证该规格行存在，然后只勾选这一行（走 store 方法，勾选状态会持久化）
   cartStore.add({
-    productId: product.value.id,
-    title: product.value.title,
-    price: product.value.price,
-    color: product.value.color,
-    spec: specs[specIdx.value],
-  }, 1);
-  // 只勾选本次购买的同类商品
-  cartStore.state.items.forEach((i) => {
-    i.checked = i.productId === product.value!.id && i.spec === specs[specIdx.value];
+    productId: p.id,
+    title: p.title,
+    price: p.price,
+    color: p.color,
+    spec,
   });
-  if (!cartStore.state.items.some((i) => i.checked)) {
-    const line = cartStore.state.items.find((i) => i.productId === product.value!.id && i.spec === specs[specIdx.value]);
-    if (line) line.checked = true;
-  }
-  if (!userIsLogin()) {
-    uni.navigateTo({ url: '/pages/login' });
+  cartStore.setOnlyChecked(lineIdOf(p.id, spec));
+
+  if (!userStore.state.user.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/login' });
     return;
   }
   uni.navigateTo({ url: '/pages/order/confirm' });
-}
-
-function userIsLogin() {
-  return userStore.state.user.isLoggedIn;
 }
 
 function toggleFav() {

@@ -46,13 +46,9 @@ onShow(() => {
 
 function choose(a: Address) {
   if (!selectMode.value) return;
-  const pages = getCurrentPages();
-  // @ts-ignore
-  const prev = pages[pages.length - 2];
-  if (prev && prev.$vm) {
-    // @ts-ignore
-    prev.$vm.address = a;
-  }
+  // 通过 store 回传选中结果：<script setup> 的绑定不会暴露到页面实例上，
+  // prev.$vm.address = a 在生产构建下不生效，故改用 store 中转
+  userStore.setPendingAddress(a.id);
   uni.navigateBack();
 }
 function add() {

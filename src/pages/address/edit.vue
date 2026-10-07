@@ -54,13 +54,25 @@ onLoad((q) => {
 
 function save() {
   if (!form.name.trim()) return uni.showToast({ title: '请填写收货人', icon: 'none' });
-  if (!/^1\d{10}$/.test(form.phone)) return uni.showToast({ title: '请填写正确手机号', icon: 'none' });
+  if (!/^1\d{10}$/.test(form.phone.trim())) return uni.showToast({ title: '请填写正确手机号', icon: 'none' });
   if (!form.region.trim()) return uni.showToast({ title: '请填写所在地区', icon: 'none' });
   if (!form.detail.trim()) return uni.showToast({ title: '请填写详细地址', icon: 'none' });
-  if (!editId.value) form.id = String(Date.now());
-  userStore.saveAddress({ ...form });
+
+  const payload: Address = {
+    ...form,
+    id: editId.value || `A${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+    name: form.name.trim(),
+    phone: form.phone.trim(),
+    region: form.region.trim(),
+    detail: form.detail.trim(),
+  };
+  userStore.saveAddress(payload);
   uni.showToast({ title: '已保存', icon: 'success' });
-  setTimeout(() => uni.navigateBack(), 500);
+  setTimeout(() => {
+    // 无上一页时（如从通知直达）navigateBack 会失败，回落到地址列表
+    if (getCurrentPages().length > 1) uni.navigateBack();
+    else uni.redirectTo({ url: '/pages/address/list' });
+  }, 500);
 }
 </script>
 

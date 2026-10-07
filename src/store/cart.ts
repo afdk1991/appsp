@@ -13,6 +13,7 @@ export interface CartItem {
 }
 
 const KEY = 'appsp_cart';
+const MAX_COUNT = 999;
 
 interface CartState {
   items: CartItem[];
@@ -26,6 +27,11 @@ function persist() {
   save(KEY, state.items);
 }
 
+/** 购物车行 id 规则：productId + '_' + spec */
+export function lineIdOf(productId: string, spec: string): string {
+  return `${productId}_${spec}`;
+}
+
 export const cartStore = {
   state,
   totalCount: computed(() => state.items.reduce((s, i) => s + i.count, 0)),
@@ -35,14 +41,25 @@ export const cartStore = {
   ),
 
   add(item: Omit<CartItem, 'id' | 'count' | 'checked'>, count = 1) {
-    const lineId = `${item.productId}_${item.spec}`;
+    const lineId = lineIdOf(item.productId, item.spec);
     const exist = state.items.find((i) => i.id === lineId);
     if (exist) {
-      exist.count += count;
+      exist.count = Math.min(MAX_COUNT, exist.count + count);
     } else {
-      state.items.push({ ...item, id: lineId, count, checked: true });
+      state.items.push({ ...item, id: lineId, count: Math.min(MAX_COUNT, count), checked: true });
     }
     persist();
+  },
+
+  /** 立即购买：只勾选指定行（会持久化，避免重启后勾选状态丢失） */
+  setOnlyChecked(lineId: string) {
+    let hit = false;
+    state.items.forEach((i) => {
+      i.checked = i.id === lineId;
+      if (i.id === lineId) hit = true;
+    });
+    persist();
+    return hit;
   },
 
   changeCount(id: string, delta: number) {
@@ -51,6 +68,8 @@ export const cartStore = {
     it.count += delta;
     if (it.count <= 0) {
       state.items = state.items.filter((i) => i.id !== id);
+    } else if (it.count > MAX_COUNT) {
+      it.count = MAX_COUNT;
     }
     persist();
   },

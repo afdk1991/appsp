@@ -33,30 +33,80 @@ const isLogin = ref(false);
 
 onShow(() => {
   isLogin.value = userStore.state.user.isLoggedIn;
+  calcSize();
+});
+
+/** 统计缓存体积（H5 统计 localStorage，App 端统计本地文件） */
+function calcSize() {
   try {
     // #ifdef H5
-    const keys = Object.keys(localStorage);
     let total = 0;
-    keys.forEach((k) => { total += (localStorage.getItem(k) || '').length; });
+    Object.keys(localStorage).forEach((k) => {
+      total += (localStorage.getItem(k) || '').length;
+    });
     cacheSize.value = total > 1024 ? (total / 1024).toFixed(1) + 'KB' : total + 'B';
     // #endif
     // #ifndef H5
-    cacheSize.value = '1.2MB';
+    uni.getSavedFileList({
+      success: (res) => {
+        const total = (res.fileList || []).reduce((s, f) => s + (f.size || 0), 0);
+        cacheSize.value = total > 1024 ? (total / 1024).toFixed(1) + 'KB' : total + 'B';
+      },
+      fail: () => { cacheSize.value = '0KB'; },
+    });
     // #endif
   } catch {
     cacheSize.value = '0KB';
   }
-});
+}
+
+/** 真正执行清理：只删缓存类数据，appsp_ 前缀的业务数据（账号/订单/购物车）一律保留 */
+function doClear(): Promise<number> {
+  return new Promise((resolve) => {
+    // #ifdef H5
+    let n = 0;
+    try {
+      Object.keys(localStorage).forEach((k) => {
+        if (!k.startsWith('appsp_')) {
+          localStorage.removeItem(k);
+          n++;
+        }
+      });
+    } catch { /* ignore */ }
+    resolve(n);
+    // #endif
+    // #ifndef H5
+    uni.getSavedFileList({
+      success: (res) => {
+        const files = res.fileList || [];
+        if (!files.length) return resolve(0);
+        let done = 0;
+        files.forEach((f) => {
+          uni.removeSavedFile({
+            filePath: f.filePath,
+            complete: () => {
+              done++;
+              if (done === files.length) resolve(files.length);
+            },
+          });
+        });
+      },
+      fail: () => resolve(0),
+    });
+    // #endif
+  });
+}
 
 function clearCache() {
   uni.showModal({
     title: '清除缓存',
     content: '将清理临时图片与文件，不影响账号和订单数据',
     success: (r) => {
-      if (r.confirm) {
-        uni.showToast({ title: '已清理', icon: 'success' });
-        cacheSize.value = '0KB';
-      }
+      if (!r.confirm) return;
+      doClear().then((n) => {
+        calcSize();
+        uni.showToast({ title: n > 0 ? `已清理 ${n} 项` : '暂无缓存', icon: 'none' });
+      });
     },
   });
 }

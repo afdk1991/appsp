@@ -31,6 +31,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { onUnload } from '@dcloudio/uni-app';
 import { userStore } from '../../store/user';
 
 const phone = ref('');
@@ -69,14 +70,30 @@ function doLogin() {
   }
   userStore.login(phone.value);
   uni.showToast({ title: '登录成功', icon: 'success' });
-  setTimeout(() => uni.navigateBack(), 600);
+  setTimeout(() => goBack(), 600);
 }
 
 function quickLogin() {
   userStore.login('13800138000');
   uni.showToast({ title: '登录成功', icon: 'success' });
-  setTimeout(() => uni.navigateBack(), 600);
+  setTimeout(() => goBack(), 600);
 }
+
+/** 登录成功后回退；若无上一页（直接进入登录页）则回首页 */
+function goBack() {
+  if (getCurrentPages().length > 1) {
+    uni.navigateBack();
+  } else {
+    uni.switchTab({ url: '/pages/index/index' });
+  }
+}
+
+onUnload(() => {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+});
 </script>
 
 <style scoped>

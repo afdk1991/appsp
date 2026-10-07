@@ -40,7 +40,7 @@
           <view class="state-icon">⭐</view>
           <text class="state-name">待评价</text>
         </view>
-        <view class="state" @tap="goOrders('all')">
+        <view class="state" @tap="goOrders('refund')">
           <view class="state-icon">↩️</view>
           <text class="state-name">退款</text>
         </view>
@@ -65,7 +65,7 @@ import { onShow } from '@dcloudio/uni-app';
 import { userStore } from '../../store/user';
 
 const user = ref(userStore.state.user);
-const counts = ref({ pending_pay: 0, paid: 0, shipped: 0, done: 0 });
+const counts = ref({ pending_pay: 0, paid: 0, shipped: 0, done: 0, refund: 0 });
 
 const menus = [
   { key: 'address', name: '收货地址', icon: '📍' },
@@ -83,6 +83,7 @@ onShow(() => {
     paid: userStore.orderCountByStatus('paid'),
     shipped: userStore.orderCountByStatus('shipped'),
     done: userStore.orderCountByStatus('done'),
+    refund: userStore.orderCountByStatus('refund'),
   };
 });
 
@@ -100,12 +101,12 @@ function onLogin() {
   uni.navigateTo({ url: '/pages/login/login' });
 }
 
-function goOrders(_s: string) {
+function goOrders(status: string) {
   if (!userStore.state.user.isLoggedIn) {
     uni.navigateTo({ url: '/pages/login/login' });
     return;
   }
-  uni.navigateTo({ url: '/pages/order/list' });
+  uni.navigateTo({ url: `/pages/order/list?status=${status}` });
 }
 
 function onMenu(m: { key: string; name: string }) {

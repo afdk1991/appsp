@@ -52,6 +52,8 @@ const ORDER_KEY = 'appsp_orders';
 const COUPON_KEY = 'appsp_coupons';
 
 const state = reactive({
+  /** 下单流程里临时选中的地址 id（不持久化，仅单次选择会话有效） */
+  pendingAddressId: '',
   user: load<UserProfile>(USER_KEY, {
     isLoggedIn: false,
     phone: '',
@@ -72,12 +74,34 @@ function persistAddr() { save(ADDR_KEY, state.addresses); }
 function persistOrder() { save(ORDER_KEY, state.orders); }
 function persistCoupon() { save(COUPON_KEY, state.coupons); }
 
+/** 保证地址列表中至少有一个默认地址，避免出现「无默认地址」的悬空状态 */
+function ensureDefaultAddress() {
+  if (state.addresses.length === 0) return;
+  if (!state.addresses.some((a) => a.isDefault)) {
+    state.addresses[0].isDefault = true;
+  }
+}
+
 export const userStore = {
   state,
 
   defaultAddress: computed<Address | null>(() => {
     return state.addresses.find((a) => a.isDefault) || state.addresses[0] || null;
   }),
+
+  /** 下单页当前应展示的地址：优先本次选择的，否则回落到默认地址 */
+  pendingAddress: computed<Address | null>(() => {
+    const id = state.pendingAddressId;
+    if (!id) return null;
+    return state.addresses.find((a) => a.id === id) || null;
+  }),
+
+  setPendingAddress(id: string) {
+    state.pendingAddressId = id;
+  },
+  clearPendingAddress() {
+    state.pendingAddressId = '';
+  },
 
   orderCountByStatus(status: OrderStatus) {
     return state.orders.filter((o) => o.status === status).length;
@@ -105,10 +129,13 @@ export const userStore = {
     if (addr.isDefault) state.addresses.forEach((a) => (a.isDefault = false));
     if (idx >= 0) state.addresses[idx] = addr;
     else state.addresses.push(addr);
+    ensureDefaultAddress();
     persistAddr();
   },
   removeAddress(id: string) {
     state.addresses = state.addresses.filter((a) => a.id !== id);
+    if (state.pendingAddressId === id) state.pendingAddressId = '';
+    ensureDefaultAddress();
     persistAddr();
   },
   setDefaultAddress(id: string) {
@@ -133,6 +160,11 @@ export const userStore = {
   updateOrderStatus(id: string, status: OrderStatus) {
     const o = state.orders.find((x) => x.id === id);
     if (o) { o.status = status; persistOrder(); }
+  },
+  /** 删除订单（含持久化，避免重启后订单复活） */
+  removeOrder(id: string) {
+    state.orders = state.orders.filter((o) => o.id !== id);
+    persistOrder();
   },
 
   // ---------- 优惠券 ----------

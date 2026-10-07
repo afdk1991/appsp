@@ -42,8 +42,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { onShow } from '@dcloudio/uni-app';
-import { userStore, type Order, type OrderStatus } from '../../store/user';
+import { onLoad } from '@dcloudio/uni-app';
+import { userStore, type OrderStatus } from '../../store/user';
 
 const tabs: { key: OrderStatus | 'all'; label: string }[] = [
   { key: 'all', label: '全部' },
@@ -51,6 +51,7 @@ const tabs: { key: OrderStatus | 'all'; label: string }[] = [
   { key: 'paid', label: '待发货' },
   { key: 'shipped', label: '待收货' },
   { key: 'done', label: '已完成' },
+  { key: 'refund', label: '退款' },
 ];
 const cur = ref(0);
 const orders = computed(() => userStore.state.orders);
@@ -60,7 +61,13 @@ const filtered = computed(() => {
   return orders.value.filter((o) => o.status === k);
 });
 
-onShow(() => { /* 响应式自动更新 */ });
+/** 支持 ?status=xxx 直达指定分组（「我的」页各状态入口依赖此能力） */
+onLoad((query) => {
+  const s = query?.status as OrderStatus | 'all' | undefined;
+  if (!s) return;
+  const idx = tabs.findIndex((t) => t.key === s);
+  if (idx >= 0) cur.value = idx;
+});
 
 function statusText(s: OrderStatus) {
   return { pending_pay: '待付款', paid: '待发货', shipped: '待收货', done: '已完成', refund: '退款中' }[s];
@@ -93,7 +100,8 @@ function del(id: string) {
     content: '确定删除该订单？',
     success: (r) => {
       if (r.confirm) {
-        userStore.state.orders = userStore.state.orders.filter((o) => o.id !== id);
+        // 走 store 方法，保证删除结果写入本地存储
+        userStore.removeOrder(id);
       }
     },
   });
@@ -102,8 +110,8 @@ function del(id: string) {
 
 <style scoped>
 .page { padding: 16rpx 24rpx 40rpx; }
-.tabs { display: flex; background: #fff; border-radius: 16rpx; padding: 8rpx; margin-bottom: 16rpx; }
-.tab { flex: 1; text-align: center; font-size: 24rpx; color: #666; padding: 14rpx 0; border-radius: 12rpx; }
+.tabs { display: flex; background: #fff; border-radius: 16rpx; padding: 8rpx; margin-bottom: 16rpx; overflow-x: auto; white-space: nowrap; }
+.tab { flex: 0 0 auto; min-width: 110rpx; text-align: center; font-size: 24rpx; color: #666; padding: 14rpx 16rpx; border-radius: 12rpx; }
 .tab.on { background: #FFEDE3; color: #FF5A1F; font-weight: 600; }
 .empty { text-align: center; padding: 160rpx 0; }
 .empty-icon { font-size: 80rpx; display: block; }

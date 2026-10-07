@@ -6,6 +6,10 @@
     </view>
 
     <view v-if="loading" class="loading">加载中…</view>
+    <view v-else-if="tools.length === 0" class="loading">
+      <text class="err">工具加载失败</text>
+      <view class="retry" @tap="load">重试</view>
+    </view>
     <view v-else class="grid">
       <view v-for="t in tools" :key="t.key" class="cell" @tap="onTool(t)">
         <view class="icon" :style="{ background: t.iconColor }">{{ t.name.slice(0, 1) }}</view>
@@ -28,7 +32,11 @@ async function load() {
   loading.value = true;
   try {
     const res = await fetchTools();
-    tools.value = res.data;
+    tools.value = res.data || [];
+    if (!tools.value.length) uni.showToast({ title: '暂无可用工具', icon: 'none' });
+  } catch {
+    tools.value = [];
+    uni.showToast({ title: '工具加载失败', icon: 'none' });
   } finally {
     loading.value = false;
   }
@@ -40,7 +48,9 @@ function onTool(t: ToolItem) {
     case 'calc': uni.navigateTo({ url: '/pages/tools/calc' }); break;
     case 'note': uni.navigateTo({ url: '/pages/tools/note' }); break;
     case 'currency': uni.navigateTo({ url: '/pages/tools/currency' }); break;
-    case 'qrcode': uni.navigateTo({ url: '/pages/tools/qrcode' }); break;
+    case 'qrcode':
+    case 'qr':
+      uni.navigateTo({ url: '/pages/tools/qrcode' }); break;
     case 'level': uni.navigateTo({ url: '/pages/tools/level' }); break;
     case 'scan':
       uni.scanCode({
@@ -64,6 +74,8 @@ onMounted(load);
 .banner-title { color: #fff; font-size: 36rpx; font-weight: 700; display: block; }
 .banner-sub { color: rgba(255,255,255,.85); font-size: 24rpx; margin-top: 8rpx; display: block; }
 .loading { text-align: center; color: #999; padding: 120rpx 0; }
+.err { display: block; font-size: 26rpx; }
+.retry { display: inline-block; margin-top: 24rpx; padding: 14rpx 40rpx; background: #FF5A1F; color: #fff; border-radius: 32rpx; font-size: 26rpx; }
 .grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
 .cell { width: 31.5%; background: #fff; border-radius: 20rpx; padding: 24rpx 16rpx; text-align: center; margin-bottom: 20rpx; }
 .icon { width: 88rpx; height: 88rpx; border-radius: 24rpx; color: #fff; font-size: 40rpx; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 14rpx; }

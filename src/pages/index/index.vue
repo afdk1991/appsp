@@ -14,7 +14,7 @@
 
     <!-- 金刚区 -->
     <scroll-view class="kingkong" scroll-x>
-      <view v-for="c in categories" :key="c" class="kk-item">
+      <view v-for="c in categories" :key="c" class="kk-item" @tap="onCategory(c)">
         <view class="kk-dot" :style="{ background: catColor(c) }"></view>
         <text class="kk-text">{{ c }}</text>
       </view>
@@ -22,6 +22,10 @@
 
     <!-- 商品双列 -->
     <view v-if="loading" class="loading">加载中…</view>
+    <view v-else-if="error" class="loading">
+      <text class="err-text">商品加载失败</text>
+      <view class="retry" @tap="load">重新加载</view>
+    </view>
     <view v-else class="grid">
       <view v-for="p in products" :key="p.id" class="card" @tap="onProduct(p)">
         <view class="thumb" :style="{ background: p.color }">
@@ -49,6 +53,7 @@ import { cartStore } from '../../store/cart';
 
 const products = ref<Product[]>([]);
 const loading = ref(true);
+const error = ref(false);
 const categories = ['推荐', '数码', '家居', '服饰', '美食', '美妆', '运动', '母婴'];
 const cartCount = computed(() => cartStore.totalCount.value);
 
@@ -61,12 +66,21 @@ function catColor(c: string) {
 
 async function load() {
   loading.value = true;
+  error.value = false;
   try {
     const res = await fetchProducts();
-    products.value = res.data;
+    products.value = res.data || [];
+  } catch {
+    products.value = [];
+    error.value = true;
   } finally {
     loading.value = false;
   }
+}
+
+/** 金刚区：把分类名当搜索词带到搜索页（商品数据暂无分类字段，走搜索最贴近预期） */
+function onCategory(c: string) {
+  uni.navigateTo({ url: `/pages/search/search?keyword=${encodeURIComponent(c)}` });
 }
 
 function onProduct(p: Product) {
@@ -95,6 +109,8 @@ onMounted(load);
 .kk-dot { width: 80rpx; height: 80rpx; border-radius: 24rpx; margin-bottom: 10rpx; }
 .kk-text { font-size: 24rpx; color: #333; }
 .loading { text-align: center; color: #999; padding: 120rpx 0; }
+.err-text { display: block; font-size: 26rpx; }
+.retry { display: inline-block; margin-top: 24rpx; padding: 14rpx 40rpx; background: #FF5A1F; color: #fff; border-radius: 32rpx; font-size: 26rpx; }
 .grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
 .card { width: 48.5%; background: #fff; border-radius: 20rpx; overflow: hidden; margin-bottom: 20rpx; }
 .thumb { position: relative; height: 280rpx; display: flex; align-items: center; justify-content: center; }

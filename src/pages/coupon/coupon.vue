@@ -10,7 +10,7 @@
         <text class="expire">有效期至 {{ c.expire }}</text>
       </view>
       <view class="right" @tap="receive(c)">
-        {{ c.received ? '已领取' : '领取' }}
+        {{ c.received ? '已领取' : (isExpired(c) ? '已过期' : '领取') }}
       </view>
     </view>
     <view v-if="!list.length" class="empty">暂无优惠券</view>
@@ -25,8 +25,19 @@ import { userStore, type Coupon } from '../../store/user';
 const list = ref<Coupon[]>([]);
 onShow(() => { list.value = [...userStore.state.coupons]; });
 
+/** 过期判定：expire 为 YYYY-MM-DD，当天结束前仍可用 */
+function isExpired(c: Coupon): boolean {
+  const end = new Date(`${c.expire}T23:59:59`);
+  if (Number.isNaN(end.getTime())) return false;
+  return end.getTime() < Date.now();
+}
+
 function receive(c: Coupon) {
   if (c.received) return;
+  if (isExpired(c)) {
+    uni.showToast({ title: '该券已过期', icon: 'none' });
+    return;
+  }
   userStore.receiveCoupon(c.id);
   uni.showToast({ title: '领取成功', icon: 'success' });
   list.value = [...userStore.state.coupons];

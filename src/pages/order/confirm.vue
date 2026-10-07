@@ -71,16 +71,28 @@ const goodsPrice = computed(() => items.value.reduce((s, i) => s + i.price * i.c
 const discount = computed(() => {
   if (!usedCoupon.value) return 0;
   if (goodsPrice.value < usedCoupon.value.threshold) return 0;
+  if (isExpired(usedCoupon.value)) return 0;
   return usedCoupon.value.amount;
 });
 const payPrice = computed(() => Math.max(0, goodsPrice.value - discount.value));
+/** 过期判定：expire 为 YYYY-MM-DD，当天结束前仍可用 */
+function isExpired(c: Coupon): boolean {
+  const end = new Date(`${c.expire}T23:59:59`);
+  if (Number.isNaN(end.getTime())) return false;
+  return end.getTime() < Date.now();
+}
+
 const couponText = computed(() => {
-  if (usedCoupon.value) return `-¥${usedCoupon.value.amount}（${usedCoupon.value.title}）`;
-  return '选择优惠券';
+  const c = usedCoupon.value;
+  if (!c) return '选择优惠券';
+  // 未达门槛时不展示抵扣金额，避免「显示减 10 但实际没减」
+  if (goodsPrice.value < c.threshold) return `${c.title}（未满${c.threshold}元，暂不可用）`;
+  return `-¥${c.amount}（${c.title}）`;
 });
 
 onShow(() => {
-  address.value = userStore.defaultAddress.value;
+  // 优先展示本次在地址列表里选中的地址，否则回落到默认地址
+  address.value = userStore.pendingAddress.value || userStore.defaultAddress.value;
 });
 
 function chooseAddr() {
@@ -88,7 +100,9 @@ function chooseAddr() {
 }
 
 function chooseCoupon() {
-  const usable = userStore.state.coupons.filter((c) => c.received && c.threshold <= goodsPrice.value);
+  const usable = userStore.state.coupons.filter(
+    (c) => c.received && !isExpired(c) && c.threshold <= goodsPrice.value,
+  );
   if (!usable.length) {
     uni.showToast({ title: '暂无可使用优惠券', icon: 'none' });
     return;
@@ -121,6 +135,7 @@ function submit() {
   }));
   const order = userStore.createOrder(orderItems, payPrice.value, address.value);
   cartStore.clearChecked();
+  userStore.clearPendingAddress();
 
   uni.showModal({
     title: '下单成功',
