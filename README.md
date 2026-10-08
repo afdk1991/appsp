@@ -110,12 +110,19 @@ npm run type-check   # TS 类型检查
 启动地址配置在 `app/src/main/res/values/strings.xml` 的 `start_url`，改这一处即可换站点，无需改 Java 代码。
 启动图标同时提供 `mipmap-mdpi ~ mipmap-xxxhdpi` 位图（API 21-25）与 `mipmap-anydpi-v26` 自适应图标（API 26+）。
 
+项目已内置 Gradle Wrapper（8.7），无需本机预装 gradle：
+
 ```bash
 cd android-shell
-# 需本地有 gradle 8.x，并在 local.properties 指定 sdk.dir
-gradle assembleDebug      # 输出 app/build/outputs/apk/debug/app-debug.apk
+# local.properties 需指定本机 Android SDK 路径（该文件已被 .gitignore 排除）
+# Windows
+gradlew.bat assembleDebug
+# macOS / Linux
+./gradlew assembleDebug
+# 输出：app/build/outputs/apk/debug/app-debug.apk
 ```
 
+> 首次执行会联网下载 Gradle 8.7 发行版至 `~/.gradle/wrapper/dists`（约 100MB），后续离线复用。
 > 注意：`android-shell/local.properties` 含本机 SDK 路径，已在 `.gitignore` 中排除，不要提交。
 > `.gitignore` 对 `gradle-wrapper.jar` 做了例外放行（全局 `*.jar` 规则会拦掉它），否则他人 clone 后无法构建。
 

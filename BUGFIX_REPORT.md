@@ -75,7 +75,7 @@
 | 项 | 说明 | 建议 |
 | --- | --- | --- |
 | GitHub 推送 | 本地已就绪（**7 个提交领先远端**，工作树干净），SSH 配置已加 appsp key 并切到 SSH 远端 `git@github.com:afdk1991/appsp.git`。已穷举全部凭据通路：HTTPS 无 PAT、`id_ed25519_appsp`/`id_ed25519_manju` 两把 SSH key 均未在 GitHub 登记、`ghu_` 令牌写操作 403、API 自助登记公钥亦 403、`gh` CLI 未装 → **确认本机无任何具备写权限的凭据** | 二选一（唯一缺口）：① 给一个 `repo` 权限 PAT；② 把公钥 `ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOVjAFcLcZJJTvdu228sd8vYCnFPqr4CXNc8HG5zm8Cm` 加到 github.com/settings/ssh，登记后我立即 `git push` |
-| Gradle Wrapper | `android-shell/gradle/wrapper/` 缺失，本机无 gradle 二进制，只能用 HBuilderX 或自行安装 gradle 打包 | 如需 CI 复现构建，需装 gradle 8.x 后执行 `gradle wrapper` 生成 |
+| Gradle Wrapper | 原 `android-shell/gradle/wrapper/` 缺失，他人 clone 后无法复现构建 | ✅ 已解决：补入 gradlew / gradlew.bat / gradle-wrapper.jar(8.7) / gradle-wrapper.properties，无需本机预装 gradle |
 | 明文流量 | ✅ 已解决（2026-10-08 晚）：全量扫描确认所有真实端点均为 https（start_url / BASE_URL / 二维码·分享链接），`usesCleartextTraffic` 已改为 `false`（commit c8b203d） | — |
 | H5 资源未内置 | `MainActivity.START_URL` 指向 CloudBase 远程地址，离线打开为空 | 若需离线可用，把 `npm run build:h5` 产物放进 `assets/` 并改加载本地 |
 
@@ -150,7 +150,7 @@ git check-ignore dist_v6     →  命中 .gitignore:5:dist_*/
 | `manifest.json` 的 `appid` | 当前是占位符 `__UNI__APPSP01`，不是合法 DCloud appid（应为 `H` + 8 位十六进制）。本地构建不受影响，但 **HBuilderX 云打包会失败** | 用 HBuilderX 打开项目时它会自动分配并改写；或手动填你在 DCloud 开发者中心申请到的 appid |
 | `usesCleartextTraffic="true"` | ✅ 已改为 `false`（commit c8b203d）：全端点确认 https，符合 Android 28+ 安全默认 | 无需操作 |
 | GitHub 推送 | 本地仓库已就绪（本轮为第 3 个提交），仍卡在账号授权：设备流拿到的是 GitHub App 集成令牌，无 `repo` 写权限，git 报 403 | 二选一：① 给一个 Fine-grained PAT（Contents: Read and write）；② 把公钥 `ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOVjAFcLcZJJTvdu228sd8vYCnFPqr4CXNc8HG5zm8Cm` 加到 github.com/settings/ssh（22 端口被拒，已配好 443 转发） |
-| Gradle wrapper | `android-shell/gradle/wrapper/` 缺失，本机无 gradle 二进制，只能用 HBuilderX 或自行安装 gradle 打包 | 装 gradle 8.x 后执行 `gradle wrapper` 生成（`.gitignore` 已放行 wrapper jar） |
+| Gradle wrapper | 原 `android-shell/gradle/wrapper/` 缺失 | ✅ 已解决：内置 Wrapper 8.7（脚本+jar+properties），首次运行自动下载 Gradle 发行版 |
 | H5 资源未内置 | `start_url` 指向 CloudBase 远程地址，离线打开为空 | 若需离线可用，把 `npm run build:h5` 产物放进 `assets/` 并改为加载本地文件 |
 
 ---

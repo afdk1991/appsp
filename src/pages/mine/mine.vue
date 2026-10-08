@@ -37,8 +37,11 @@
           <text class="state-name">待收货</text>
         </view>
         <view class="state" @tap="goOrders('done')">
-          <view class="state-icon">⭐</view>
-          <text class="state-name">待评价</text>
+          <view class="state-icon">
+            ⭐
+            <text v-if="counts.done" class="badge">{{ counts.done }}</text>
+          </view>
+          <text class="state-name">已完成</text>
         </view>
         <view class="state" @tap="goOrders('refund')">
           <view class="state-icon">↩️</view>
