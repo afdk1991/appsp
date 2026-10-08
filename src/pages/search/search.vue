@@ -39,7 +39,7 @@
       <view v-else-if="results.length" class="grid">
         <view v-for="p in results" :key="p.id" class="card" @tap="goDetail(p)">
           <view class="thumb" :style="{ background: p.color }">
-            <text class="thumb-text">{{ p.title.slice(0, 2) }}</text>
+            <text class="thumb-emoji">{{ p.emoji || '🛍️' }}</text>
           </view>
           <view class="info">
             <text class="title">{{ p.title }}</text>
@@ -165,7 +165,7 @@ function goBack() {
 .grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
 .card { width: 48.5%; background: #fff; border-radius: 20rpx; overflow: hidden; margin-bottom: 20rpx; }
 .thumb { height: 280rpx; display: flex; align-items: center; justify-content: center; }
-.thumb-text { font-size: 48rpx; color: rgba(255,255,255,.85); font-weight: 600; }
+.thumb-emoji { font-size: 110rpx; line-height: 1; }
 .info { padding: 16rpx 20rpx 20rpx; }
 .title { font-size: 26rpx; color: #222; line-height: 1.4; display: block; min-height: 72rpx; }
 .price-row { display: flex; align-items: baseline; gap: 12rpx; margin-top: 10rpx; }

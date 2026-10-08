@@ -17,7 +17,7 @@
         </view>
         <view v-for="it in o.items" :key="it.productId + it.spec" class="row">
           <view class="thumb" :style="{ background: it.color }">
-            <text class="thumb-text">{{ it.title.slice(0, 2) }}</text>
+            <text class="thumb-emoji">{{ it.emoji || '🛍️' }}</text>
           </view>
           <view class="info">
             <text class="title">{{ it.title }}</text>
@@ -140,7 +140,7 @@ function del(id: string) {
 .status.refund { color: #E53935; }
 .row { display: flex; align-items: center; gap: 16rpx; padding: 10rpx 0; }
 .thumb { width: 90rpx; height: 90rpx; border-radius: 10rpx; display: flex; align-items: center; justify-content: center; }
-.thumb-text { font-size: 28rpx; color: rgba(255,255,255,.85); font-weight: 600; }
+.thumb-emoji { font-size: 44rpx; line-height: 1; }
 .info { flex: 1; }
 .title { font-size: 26rpx; color: #222; display: block; }
 .spec { font-size: 22rpx; color: #999; margin-top: 6rpx; display: block; }

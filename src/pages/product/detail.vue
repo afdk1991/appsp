@@ -3,7 +3,7 @@
     <view v-if="loading" class="loading">加载中…</view>
     <template v-else-if="product">
       <view class="hero" :style="{ background: product.color }">
-        <text class="hero-text">{{ product.title.slice(0, 2) }}</text>
+        <text class="hero-emoji">{{ product.emoji || '🛍️' }}</text>
         <text v-if="product.tag" class="hero-tag">{{ product.tag }}</text>
       </view>
 
@@ -93,6 +93,7 @@ function addToCart() {
     price: product.value.price,
     color: product.value.color,
     spec: specs[specIdx.value],
+    emoji: product.value.emoji,
   });
   uni.showToast({ title: '已加入购物车', icon: 'success' });
 }
@@ -108,6 +109,7 @@ function buyNow() {
     price: p.price,
     color: p.color,
     spec,
+    emoji: p.emoji,
   });
   cartStore.setOnlyChecked(lineIdOf(p.id, spec));
 
@@ -136,7 +138,7 @@ function goCart() {
 .page { padding-bottom: 140rpx; }
 .loading { text-align: center; color: #999; padding: 200rpx 0; }
 .hero { position: relative; height: 500rpx; display: flex; align-items: center; justify-content: center; }
-.hero-text { font-size: 96rpx; color: rgba(255,255,255,.9); font-weight: 700; }
+.hero-emoji { font-size: 200rpx; line-height: 1; }
 .hero-tag { position: absolute; left: 24rpx; top: 24rpx; background: rgba(0,0,0,.45); color: #fff; font-size: 22rpx; padding: 6rpx 16rpx; border-radius: 10rpx; }
 .price-card { background: #fff; padding: 24rpx; margin-bottom: 16rpx; }
 .price-row { display: flex; align-items: baseline; gap: 16rpx; }

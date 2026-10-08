@@ -10,7 +10,7 @@
       <view v-for="it in items" :key="it.id" class="row">
         <view class="check" :class="{ on: it.checked }" @tap="toggle(it)"></view>
         <view class="thumb" :style="{ background: it.color }">
-          <text class="thumb-text">{{ it.title.slice(0, 2) }}</text>
+          <text class="thumb-emoji">{{ it.emoji || '🛍️' }}</text>
         </view>
         <view class="detail">
           <text class="title">{{ it.title }}</text>
@@ -96,7 +96,7 @@ function checkout() {
 .check.on { background: #FF5A1F; border-color: #FF5A1F; position: relative; }
 .check.on::after { content: '✓'; color: #fff; font-size: 24rpx; position: absolute; left: 8rpx; top: 2rpx; }
 .thumb { width: 140rpx; height: 140rpx; border-radius: 12rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.thumb-text { font-size: 36rpx; color: rgba(255,255,255,.85); font-weight: 600; }
+.thumb-emoji { font-size: 64rpx; line-height: 1; }
 .detail { flex: 1; display: flex; flex-direction: column; }
 .title { font-size: 26rpx; color: #222; line-height: 1.3; }
 .spec { font-size: 22rpx; color: #999; margin-top: 6rpx; }

@@ -24,6 +24,8 @@ export interface OrderItem {
   color: string;
   spec: string;
   count: number;
+  /** 商品缩略图 emoji，下单时从购物车行带入（历史订单无此字段，渲染时走兜底） */
+  emoji?: string;
 }
 
 export type OrderStatus = 'pending_pay' | 'paid' | 'shipped' | 'done' | 'refund';

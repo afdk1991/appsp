@@ -18,7 +18,7 @@
     <view class="card">
       <view v-for="it in items" :key="it.id" class="row">
         <view class="thumb" :style="{ background: it.color }">
-          <text class="thumb-text">{{ it.title.slice(0, 2) }}</text>
+          <text class="thumb-emoji">{{ it.emoji || '🛍️' }}</text>
         </view>
         <view class="info">
           <text class="title">{{ it.title }}</text>
@@ -125,6 +125,7 @@ function submit() {
     uni.showToast({ title: '购物车无选中商品', icon: 'none' });
     return;
   }
+  // emoji 必须显式带上：订单行独立持久化，拿不到购物车行，缺少则历史订单退回占位图
   const orderItems = items.value.map((i) => ({
     productId: i.productId,
     title: i.title,
@@ -132,6 +133,7 @@ function submit() {
     color: i.color,
     spec: i.spec,
     count: i.count,
+    emoji: i.emoji,
   }));
   const order = userStore.createOrder(orderItems, payPrice.value, address.value);
   cartStore.clearChecked();
@@ -164,7 +166,7 @@ function submit() {
 .card { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; }
 .row { display: flex; align-items: center; gap: 16rpx; padding: 12rpx 0; }
 .thumb { width: 100rpx; height: 100rpx; border-radius: 12rpx; display: flex; align-items: center; justify-content: center; }
-.thumb-text { font-size: 30rpx; color: rgba(255,255,255,.85); font-weight: 600; }
+.thumb-emoji { font-size: 48rpx; line-height: 1; }
 .info { flex: 1; display: flex; flex-direction: column; }
 .title { font-size: 26rpx; color: #222; }
 .spec { font-size: 22rpx; color: #999; margin-top: 6rpx; }

@@ -4,7 +4,7 @@
     <view v-else-if="list.length" class="grid">
       <view v-for="p in list" :key="p.id" class="card" @tap="goDetail(p)">
         <view class="thumb" :style="{ background: p.color }">
-          <text class="thumb-text">{{ p.title.slice(0, 2) }}</text>
+          <text class="thumb-emoji">{{ p.emoji || '🛍️' }}</text>
           <text class="unfav" @tap.stop="unfav(p)">♥</text>
         </view>
         <view class="info">
@@ -67,7 +67,7 @@ function goShop() {
 .grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
 .card { width: 48.5%; background: #fff; border-radius: 20rpx; overflow: hidden; margin-bottom: 20rpx; }
 .thumb { position: relative; height: 280rpx; display: flex; align-items: center; justify-content: center; }
-.thumb-text { font-size: 48rpx; color: rgba(255,255,255,.85); font-weight: 600; }
+.thumb-emoji { font-size: 110rpx; line-height: 1; }
 .unfav { position: absolute; right: 16rpx; top: 16rpx; font-size: 36rpx; color: #FF5A1F; }
 .info { padding: 16rpx 20rpx 20rpx; }
 .title { font-size: 26rpx; color: #222; display: block; min-height: 72rpx; }

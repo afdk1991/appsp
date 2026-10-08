@@ -10,6 +10,8 @@ export interface CartItem {
   spec: string;
   count: number;
   checked: boolean;
+  /** 商品缩略图 emoji，从商品详情带入购物车（老数据无此字段，渲染时走兜底） */
+  emoji?: string;
 }
 
 const KEY = 'appsp_cart';
