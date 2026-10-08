@@ -1,14 +1,14 @@
 import type { Post, Product, ToolItem } from '../api/types';
 
 export const mockProducts: Product[] = [
-  { id: 'p1', title: '北欧风简约保温杯 500ml', price: 89, originalPrice: 129, sales: 2300, tag: '包邮', color: '#FF8A80' },
-  { id: 'p2', title: '无线蓝牙降噪耳机 Pro', price: 399, originalPrice: 599, sales: 8600, tag: '热销', color: '#82B1FF' },
-  { id: 'p3', title: '智能手环 运动心率监测', price: 159, sales: 5400, tag: '新品', color: '#B9F6CA' },
-  { id: 'p4', title: '便携折叠收纳箱 60L', price: 69, originalPrice: 99, sales: 1200, color: '#FFE57F' },
-  { id: 'p5', title: '机械键盘 87键 红轴', price: 249, sales: 3100, tag: '直降', color: '#B388FF' },
-  { id: 'p6', title: '桌面香薰机 静音大雾量', price: 119, sales: 980, color: '#80CBC4' },
-  { id: 'p7', title: '纯棉四件套 1.8m床', price: 199, originalPrice: 299, sales: 4700, tag: '好评', color: '#F48FB1' },
-  { id: 'p8', title: '充电宝 20000mAh 快充', price: 129, sales: 12000, tag: '爆款', color: '#A5D6A7' },
+  { id: 'p1', title: '北欧风简约保温杯 500ml', price: 89, originalPrice: 129, sales: 2300, tag: '包邮', color: '#FF8A80', emoji: '🥤' },
+  { id: 'p2', title: '无线蓝牙降噪耳机 Pro', price: 399, originalPrice: 599, sales: 8600, tag: '热销', color: '#82B1FF', emoji: '🎧' },
+  { id: 'p3', title: '智能手环 运动心率监测', price: 159, sales: 5400, tag: '新品', color: '#B9F6CA', emoji: '⌚' },
+  { id: 'p4', title: '便携折叠收纳箱 60L', price: 69, originalPrice: 99, sales: 1200, color: '#FFE57F', emoji: '📦' },
+  { id: 'p5', title: '机械键盘 87键 红轴', price: 249, sales: 3100, tag: '直降', color: '#B388FF', emoji: '⌨️' },
+  { id: 'p6', title: '桌面香薰机 静音大雾量', price: 119, sales: 980, color: '#80CBC4', emoji: '🌿' },
+  { id: 'p7', title: '纯棉四件套 1.8m床', price: 199, originalPrice: 299, sales: 4700, tag: '好评', color: '#F48FB1', emoji: '🛏️' },
+  { id: 'p8', title: '充电宝 20000mAh 快充', price: 129, sales: 12000, tag: '爆款', color: '#A5D6A7', emoji: '🔋' },
 ];
 
 export const mockPosts: Post[] = [

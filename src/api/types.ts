@@ -15,6 +15,8 @@ export interface Product {
   tag?: string;
   /** 占位渐变色，避免依赖网络图片 */
   color: string;
+  /** 商品缩略图 emoji，避免依赖网络图片（纯前端展示用） */
+  emoji?: string;
 }
 
 /** 内容社区帖子 */

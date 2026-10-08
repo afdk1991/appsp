@@ -35,6 +35,7 @@ export async function fetchProducts() {
     sales: num(r.sales),
     tag: str(r.tag) || undefined,
     color: str(r.color, '#EEEEEE'),
+    emoji: str(r.emoji) || undefined,
   }));
   return { code: 0, message: 'ok', data: list };
 }
